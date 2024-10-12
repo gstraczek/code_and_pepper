@@ -1,0 +1,28 @@
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider      = "prisma-client-js"
+  binaryTargets = ["native", "linux-musl-openssl-3.0.x"] //beacuse of windows deploy on docker
+}
+
+model User {
+  id          String       @id @default(uuid())
+  email       String       @unique
+  name        String?
+  password    String
+  createdAt   DateTime     @default(now())
+  investments Investment[]
+}
+
+model Investment {
+  id           Int    @id @default(autoincrement())
+  name         String
+  quantity     Int
+  buyPrice     Float
+  currentPrice Float
+  userId       String
+  user         User   @relation(fields: [userId], references: [id])
+}
