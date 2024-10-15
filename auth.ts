@@ -16,6 +16,7 @@ const authOptions: AuthOptions = {
             email: credentials?.email,
           },
         })
+        //fixme refactor
         if (user && user.password === credentials?.password) {
           return {
             id: user.id,

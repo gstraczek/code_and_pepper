@@ -1,31 +1,29 @@
 import React from "react";
 import { ICellRendererParams } from "ag-grid-community";
-import { Button } from "@/components/ui/button";
-import axios from "axios";
+import { Trash2 } from "lucide-react";
+import useInvestmentsStore from "@/store/investmentsStore";
 
 const ActionsCellRenderer = (props: ICellRendererParams) => {
   const { data, api } = props;
+  const { removeInvestment, updateChartData } = useInvestmentsStore();
 
-  const deleteRow = () => {
-    api.applyTransaction({ remove: [data] });
-  };
-
-  const saveRow = async () => {
+  const deleteRow = async () => {
     try {
-      const response = await axios.post("/api/investments", data);
-      const updatedData = response.data;
-      api.applyTransaction({ update: [updatedData] });
+      if (data.id) {
+        await removeInvestment(data.id);
+      }
+      api.applyTransaction({ remove: [data] });
+      api.refreshCells({ force: true });
+      updateChartData();
     } catch (error) {
-      console.error("Failed to save row:", error);
+      return console.error("Failed to delete row:", error);
     }
   };
-
   return (
     <div>
-      <Button className="mr-2" onClick={saveRow}>
-        Save
-      </Button>
-      <Button onClick={deleteRow}>Delete</Button>
+      <button onClick={deleteRow}>
+        <Trash2 />
+      </button>
     </div>
   );
 };

@@ -23,7 +23,17 @@ const useInvestments = () => {
     fetchInvestments();
   }, []);
 
-  return { investments, loading, error };
+  const deleteInvestment = async (id: number) => {
+    await axios.delete(`/api/investments/${id}`);
+    setInvestments((prev) => prev.filter((investment) => investment.id !== id));
+  }
+
+  const saveInvestment = async (investment: Investment) => {
+    await axios.post('/api/investments', investment);
+    setInvestments((prev) => [...prev, investment]);
+  }
+
+  return { deleteInvestment, saveInvestment, investments, loading, error };
 };
 
 export default useInvestments;
