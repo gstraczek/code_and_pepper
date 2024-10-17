@@ -4,11 +4,11 @@ import { Button } from "@/components/ui/button";
 import { InvestmentColDefs, newInvestment } from "@/types/types";
 import {
   ColDef,
-  ColGroupDef,
   ITooltipParams,
   GridApi,
   CellValueChangedEvent,
-  CsvExportParams,
+  ICellRendererParams,
+  GridReadyEvent,
 } from "ag-grid-community";
 import { AgGridReact } from "ag-grid-react";
 import { useState, useRef, useMemo, useCallback, useEffect } from "react";
@@ -16,61 +16,8 @@ import ActionsCellRenderer from "./actions";
 import useInvestmentsStore from "@/store/investmentsStore";
 import exportToExcel from "@/lib/xlsx";
 import { Investment } from "@prisma/client";
-
-const colDefs: (ColDef<InvestmentColDefs> | ColGroupDef<InvestmentColDefs>)[] =
-  [
-    {
-      field: "id",
-      headerName: "ID",
-      valueGetter: (params) => (params.node ? params.node.rowIndex! + 1 : null),
-      editable: false,
-      minWidth: 50,
-    },
-    {
-      field: "name",
-      editable: true,
-      cellClassRules: {
-        "bg-red-200": (params) => !!params.data?.errors?.name,
-      },
-      tooltipValueGetter: (params: ITooltipParams) =>
-        params.data.errors?.name || "",
-      minWidth: 150,
-    },
-    {
-      field: "quantity",
-      editable: true,
-      cellClassRules: {
-        "bg-red-200": (params) => !!params.data?.errors?.quantity,
-      },
-      tooltipValueGetter: (p: ITooltipParams) => p.data.errors?.quantity || "",
-      minWidth: 100,
-    },
-    {
-      field: "buyPrice",
-      editable: true,
-      cellClassRules: {
-        "bg-red-200": (params) => !!params.data?.errors?.buyPrice,
-      },
-      tooltipValueGetter: (p: ITooltipParams) => p.data.errors?.buyPrice || "",
-      minWidth: 100,
-    },
-    {
-      field: "currentPrice",
-      editable: true,
-      cellClassRules: {
-        "bg-red-200": (params) => !!params.data?.errors?.currentPrice,
-      },
-      tooltipValueGetter: (p: ITooltipParams) =>
-        p.data.errors?.currentPrice || "",
-      minWidth: 100,
-    },
-    {
-      field: "actions",
-      headerName: "Actions",
-      cellRenderer: ActionsCellRenderer,
-      minWidth: 50,
-    },
-  ];
+import "ag-grid-community/styles/ag-grid.css";
+import "ag-grid-community/styles/ag-theme-quartz.css";
 
 const validateRow = (row: Partial<Investment>): { [key: string]: string } => {
   const errors: { [key: string]: string } = {};
@@ -84,56 +31,106 @@ const validateRow = (row: Partial<Investment>): { [key: string]: string } => {
   return errors;
 };
 
-export default function Investments() {
+export default function Investments({
+  initialData,
+}: {
+  initialData: Investment[];
+}) {
   const {
-    fetchInvestments,
     updateInvestment,
     saveInvestment,
     updateChartData,
     investments,
+    setInvestments,
   } = useInvestmentsStore();
 
-  const [rowData, setRowData] = useState<Partial<newInvestment>[]>(
-    investments || []
-  );
+  const [isDisabled, setIsDisabled] = useState(false);
   useEffect(() => {
-    const fetchData = async () => {
-      await fetchInvestments();
-      setRowData(useInvestmentsStore.getState().investments);
-      updateChartData();
-    };
-    fetchData();
-  }, [fetchInvestments, updateChartData]);
+    setInvestments(initialData);
+    updateChartData();
+  }, [initialData, setInvestments, updateChartData]);
 
   const gridApiRef = useRef<GridApi | null>(null);
 
-  const onGridReady = (params: any) => {
+  const onGridReady = (params: GridReadyEvent) => {
     gridApiRef.current = params.api;
   };
+
+  const colDefs = useMemo<ColDef<InvestmentColDefs>[]>(
+    () => [
+      {
+        field: "id",
+        headerName: "ID",
+        editable: false,
+        minWidth: 50,
+        valueGetter: (params) => params?.data?.id || "",
+      },
+      {
+        field: "name",
+        editable: true,
+        cellClassRules: {
+          "bg-red-200": (params) => !!params.data?.errors?.name,
+        },
+        tooltipValueGetter: (params: ITooltipParams) =>
+          params.data.errors?.name || "",
+        minWidth: 150,
+      },
+      {
+        field: "quantity",
+        editable: true,
+        cellClassRules: {
+          "bg-red-200": (params) => !!params.data?.errors?.quantity,
+        },
+        tooltipValueGetter: (p: ITooltipParams) =>
+          p.data.errors?.quantity || "",
+        minWidth: 100,
+      },
+      {
+        field: "buyPrice",
+        editable: true,
+        cellClassRules: {
+          "bg-red-200": (params) => !!params.data?.errors?.buyPrice,
+        },
+        tooltipValueGetter: (p: ITooltipParams) =>
+          p.data.errors?.buyPrice || "",
+        minWidth: 100,
+      },
+      {
+        field: "currentPrice",
+        editable: true,
+        cellClassRules: {
+          "bg-red-200": (params) => !!params.data?.errors?.currentPrice,
+        },
+        tooltipValueGetter: (p: ITooltipParams) =>
+          p.data.errors?.currentPrice || "",
+        minWidth: 100,
+      },
+      {
+        field: "actions",
+        headerName: "Actions",
+        cellRenderer: (props: ICellRendererParams) => (
+          <ActionsCellRenderer {...props} onUnlockAddRow={setIsDisabled} />
+        ),
+        minWidth: 50,
+      },
+    ],
+    []
+  );
 
   const onCellValueChanged = useCallback(
     async (event: CellValueChangedEvent) => {
       const errors = validateRow(event.data);
-      const updatedRowData = rowData.map((row) =>
-        row.id === event.data.id ? { ...row, errors } : row
-      );
+
       if (!Object.keys(errors).length) {
         try {
-          if (event.data.isNew) {
-            delete event.data.isNew;
-            const createdInvestment = await saveInvestment(event.data);
-            setRowData((prev) =>
-              prev.map((row) =>
-                row.id === event.data.id
-                  ? { ...row, id: createdInvestment.id }
-                  : row
-              )
-            );
+          if (event.data.id === "temp") {
+            const savedInvestment = await saveInvestment(event.data);
+            const updatedRow = { ...event.data, id: savedInvestment.id };
+            gridApiRef.current?.applyTransaction({ update: [updatedRow] });
+            setIsDisabled(false);
           } else {
             await updateInvestment(event.data);
-            setRowData(updatedRowData);
           }
-          gridApiRef.current?.applyTransaction({ update: [event.data] });
           gridApiRef.current?.refreshCells();
           updateChartData();
         } catch (error) {
@@ -141,7 +138,7 @@ export default function Investments() {
         }
       }
     },
-    [rowData, updateInvestment, saveInvestment]
+    [updateInvestment, saveInvestment, updateChartData]
   );
 
   const defaultColDef = useMemo(() => {
@@ -154,12 +151,13 @@ export default function Investments() {
   }, []);
 
   const addNewRow = async () => {
+    setIsDisabled(true);
     const newRow: Partial<newInvestment> = {
+      id: "temp",
       name: "New Stock",
       quantity: 0,
       buyPrice: 0,
       currentPrice: 0,
-      isNew: true,
       errors: validateRow({
         name: "New Stock",
         quantity: 0,
@@ -167,10 +165,8 @@ export default function Investments() {
         currentPrice: 0,
       }),
     };
-    const updatedRowData = [...rowData, newRow];
-    setRowData(updatedRowData);
+
     gridApiRef.current?.applyTransaction({ add: [newRow] });
-    gridApiRef.current?.refreshCells();
   };
 
   const handleExportToCsv = () => {
@@ -180,32 +176,44 @@ export default function Investments() {
     });
   };
   const handleExportToExcel = () => {
-    const rest = rowData.map(({ errors, isNew, userId, ...rest }) => rest);
-    exportToExcel("investments.xlsx", rest);
+    const rest = investments.map(
+      //eslint-disable-next-line
+      ({ userId, ...rest }) => rest
+    );
+    exportToExcel("investments", rest);
   };
 
   return (
-    <div className="flex flex-col h-auto">
-      <div className="mb-4">
-        <Button className="mr-4" onClick={addNewRow}>
-          Add New Row
-        </Button>
-        <Button onClick={handleExportToCsv}>Export to CSV</Button>
-        <Button className="ml-4" onClick={handleExportToExcel}>
-          Export to Excel
-        </Button>
+    <>
+      <h1 className="text-2xl font-bold mb-4">Investments Table</h1>
+      <div className="flex flex-col h-auto">
+        <div className="mb-4">
+          <Button className="mr-4" onClick={addNewRow} disabled={isDisabled}>
+            Add New Row
+          </Button>
+          <Button onClick={handleExportToCsv} disabled={!investments.length}>
+            Export to CSV
+          </Button>
+          <Button
+            className="ml-4"
+            onClick={handleExportToExcel}
+            disabled={!investments.length}
+          >
+            Export to Excel
+          </Button>
+        </div>
+        <div className="ag-theme-quartz">
+          <AgGridReact
+            animateRows={true}
+            rowData={investments}
+            columnDefs={colDefs}
+            defaultColDef={defaultColDef}
+            onCellValueChanged={onCellValueChanged}
+            onGridReady={onGridReady}
+            domLayout="autoHeight"
+          />
+        </div>
       </div>
-      <div className="ag-theme-quartz">
-        <AgGridReact
-          animateRows={true}
-          rowData={rowData}
-          columnDefs={colDefs}
-          defaultColDef={defaultColDef}
-          onCellValueChanged={onCellValueChanged}
-          onGridReady={onGridReady}
-          domLayout="autoHeight"
-        />
-      </div>
-    </div>
+    </>
   );
 }

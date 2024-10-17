@@ -1,17 +1,12 @@
 import { Investment } from "@prisma/client";
-import { ColDef, ColGroupDef } from "ag-grid-community";
 
-// export interface Investment {
-//     id?: string;
-//     name: string;
-//     quantity: number;
-//     buyPrice: number;
-//     currentPrice: number;
-// }
-
-export interface newInvestment extends Investment {
+export interface newInvestment {
+    id?: string;
     errors?: { [key: string]: string };
-    isNew?: boolean;
+    name: string;
+    quantity: number;
+    buyPrice: number;
+    currentPrice: number;
 }
 
 
@@ -20,7 +15,7 @@ export interface InvestmentColDefs extends Investment {
     actions: string;
 }
 
-export interface AggregatedInvestments {
+export interface AggregatedInvestment {
     totalInvestment: number;
     totalCurrentValue: number;
     totalGainLoss: number;

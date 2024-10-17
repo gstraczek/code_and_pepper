@@ -1,8 +1,9 @@
-import { AggregatedInvestments, Investment } from "@/types/types";
+import { AggregatedInvestment } from "@/types/types";
+import { Investment } from "@prisma/client";
 
 import * as XLSX from "xlsx";
 
-const exportToExcel = (filename: string, rows: Investment[] | AggregatedInvestments[]) => {
+const exportToExcel = (filename: string, rows: Partial<Investment>[] | AggregatedInvestment[]) => {
     try {
         if (rows.length) {
             const workbook = XLSX.utils.book_new();

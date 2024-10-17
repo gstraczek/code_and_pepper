@@ -1,31 +1,31 @@
-'use client';
-import { useEffect, useState } from 'react';
-import axios from 'axios';
-import { AggregatedInvestments } from '@/types/types';
+// 'use client';
+// import { useEffect, useState } from 'react';
+// import axios from 'axios';
+// import { AggregatedInvestments } from '@/types/types';
 
 
 
-const useAggregatedInvestments = () => {
-    const [aggregatedInvestments, setAggregatedInvestments] = useState<AggregatedInvestments[]>([]);
-    const [loading, setLoading] = useState<boolean>(true);
-    const [error, setError] = useState<string | null>(null);
+// const useAggregatedInvestments = () => {
+//     const [aggregatedInvestments, setAggregatedInvestments] = useState<AggregatedInvestments[]>([]);
+//     const [loading, setLoading] = useState<boolean>(true);
+//     const [error, setError] = useState<string | null>(null);
 
-    useEffect(() => {
-        const fetchInvestments = async () => {
-            try {
-                const res = await axios.get<AggregatedInvestments[]>('/api/aggregated-investments');
-                setAggregatedInvestments(res.data);
-            } catch (err) {
-                setError('Failed to fetch aggregated investments');
-            } finally {
-                setLoading(false);
-            }
-        };
+//     useEffect(() => {
+//         const fetchInvestments = async () => {
+//             try {
+//                 const res = await axios.get<AggregatedInvestments[]>('/api/aggregated-investments');
+//                 setAggregatedInvestments(res.data);
+//             } catch (err) {
+//                 setError('Failed to fetch aggregated investments');
+//             } finally {
+//                 setLoading(false);
+//             }
+//         };
 
-        fetchInvestments();
-    }, []);
+//         fetchInvestments();
+//     }, []);
 
-    return { aggregatedInvestments, loading, error };
-};
+//     return { aggregatedInvestments, loading, error };
+// };
 
-export default useAggregatedInvestments;
+// export default useAggregatedInvestments;

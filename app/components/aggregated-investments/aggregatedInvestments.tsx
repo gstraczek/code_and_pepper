@@ -3,40 +3,40 @@ import { AgGridReact } from "ag-grid-react"; // React Data Grid Component
 import "ag-grid-community/styles/ag-grid.css"; // Mandatory CSS required by the Data Grid
 import "ag-grid-community/styles/ag-theme-quartz.css"; // Optional Theme applied to the Data Grid
 import { ColDef, ColGroupDef } from "ag-grid-community";
-import useAggregatedInvestments from "../../hooks/useAggregatedInvestments";
+import React, { useEffect } from "react";
+import useAggregatedInvestmentsStore from "@/store/aggregatedInvestmentsStore";
+import { AggregatedInvestment } from "@/types/types";
 
-type AggregatedInvestment = {
-  totalInvestment: number;
-  totalCurrentValue: number;
-  totalGainLoss: number;
-};
-const AggregatedInvestments = () => {
-  const AggregatedInvestments = useAggregatedInvestments();
-  const colDefs: (
-    | ColDef<AggregatedInvestment>
-    | ColGroupDef<AggregatedInvestment>
-  )[] = [
-    { field: "totalInvestment", editable: false },
-    { field: "totalCurrentValue", editable: false },
-    { field: "totalGainLoss", editable: false },
-  ];
+const colDefs: (
+  | ColDef<AggregatedInvestment>
+  | ColGroupDef<AggregatedInvestment>
+)[] = [
+  { field: "totalInvestment", editable: false },
+  { field: "totalCurrentValue", editable: false },
+  { field: "totalGainLoss", editable: false },
+];
+const AggregatedInvestments = ({
+  initialData,
+}: {
+  initialData: AggregatedInvestment[];
+}) => {
+  const { aggregatedInvestments, setAggregatedInvestments } =
+    useAggregatedInvestmentsStore();
+  useEffect(() => {
+    setAggregatedInvestments(initialData);
+  }, [initialData, setAggregatedInvestments]);
 
   return (
-    <div className="flex flex-col h-screen">
-      <div className="ag-theme-quartz ">
-        {AggregatedInvestments.loading && <p>Loading...</p>}
-        {AggregatedInvestments.error && (
-          <p style={{ color: "red" }}>{AggregatedInvestments.error}</p>
-        )}
-        {AggregatedInvestments.aggregatedInvestments && (
-          <AgGridReact
-            rowData={AggregatedInvestments.aggregatedInvestments}
-            columnDefs={colDefs}
-            domLayout="autoHeight"
-          />
-        )}
+    <>
+      <h1 className="text-2xl font-bold mb-4">Aggregated Investments Table</h1>
+      <div className="ag-theme-quartz">
+        <AgGridReact
+          domLayout="autoHeight"
+          rowData={aggregatedInvestments}
+          columnDefs={colDefs}
+        />
       </div>
-    </div>
+    </>
   );
 };
 

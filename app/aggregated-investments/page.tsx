@@ -1,36 +1,25 @@
-'use client';
-import { AgGridReact } from 'ag-grid-react'; // React Data Grid Component
-import "ag-grid-community/styles/ag-grid.css"; // Mandatory CSS required by the Data Grid
-import "ag-grid-community/styles/ag-theme-quartz.css"; // Optional Theme applied to the Data Grid
-import { ColDef, ColGroupDef } from 'ag-grid-community';
-import React from 'react';
-import useAggregatedInvestments from '../hooks/useAggregatedInvestments';
-import { Spinner } from '@/components/ui/spinner';
+import { NextRequest } from "next/server";
+import { GET } from "../api/aggregated-investments/route";
+import AggregatedInvestments from "../components/aggregated-investments/aggregatedInvestments";
+import { AggregatedInvestment } from "@/types/types";
+import AggregatedInvestmentsChart from "../components/aggregated-investments/aggregatedInvestmentsChart";
 
-type AggregatedInvestment = {
-    totalInvestment: number;
-    totalCurrentValue: number;
-    totalGainLoss: number;
-    }
-const AggregatedInvestments = () => {
-  const AggregatedInvestments = useAggregatedInvestments()
-    const colDefs: (ColDef<AggregatedInvestment> | ColGroupDef<AggregatedInvestment>)[]  =[
-        { field: "totalInvestment", editable: false },
-        { field: "totalCurrentValue", editable: false },
-        { field: "totalGainLoss", editable: false }
-    ];
-   if(AggregatedInvestments.loading) return <Spinner withBg/>;
-   if(AggregatedInvestments.error) return <div>{AggregatedInvestments.error}</div>;
-    return (
-        <div
-         className="ag-theme-quartz" 
-         style={{ height: 500 }}
-        >
-            {AggregatedInvestments.aggregatedInvestments && <AgGridReact rowData={AggregatedInvestments.aggregatedInvestments} columnDefs={colDefs} />}
-        
-        </div>
-       )
-   
-   }
+const fetchInvestmentsData = async () => {
+  const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:3000";
+  const req = new NextRequest(`${baseUrl}/api/aggregated-investments`);
+  const response = await GET(req);
+  const data: AggregatedInvestment[] = await response.json();
+  return data;
+};
 
-   export default AggregatedInvestments;
+const InvestmentsPage = async () => {
+  const aggregatedInvestments = await fetchInvestmentsData();
+  return (
+    <>
+      <AggregatedInvestments initialData={aggregatedInvestments} />
+      <AggregatedInvestmentsChart />
+    </>
+  );
+};
+
+export default InvestmentsPage;

@@ -1,20 +1,25 @@
-import React from "react";
+import React, { SetStateAction } from "react";
 import { ICellRendererParams } from "ag-grid-community";
 import { Trash2 } from "lucide-react";
 import useInvestmentsStore from "@/store/investmentsStore";
 
-const ActionsCellRenderer = (props: ICellRendererParams) => {
-  const { data, api } = props;
+interface ActionsCellRendererProps extends ICellRendererParams {
+  onUnlockAddRow: (value: SetStateAction<boolean>) => void;
+}
+
+const ActionsCellRenderer = (props: ActionsCellRendererProps) => {
+  const { data, api, onUnlockAddRow } = props;
   const { removeInvestment, updateChartData } = useInvestmentsStore();
 
   const deleteRow = async () => {
     try {
-      if (data.id) {
-        await removeInvestment(data.id);
-      }
-      api.applyTransaction({ remove: [data] });
-      api.refreshCells({ force: true });
+      // remove temp investment as it is not saved and not in the database
+      // if (!data.id) {
+      await removeInvestment(data.id);
       updateChartData();
+      // }
+      api.applyTransaction({ remove: [data] });
+      onUnlockAddRow(false);
     } catch (error) {
       return console.error("Failed to delete row:", error);
     }

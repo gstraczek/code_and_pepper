@@ -1,9 +1,10 @@
-import { NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/auth';
 
-export async function GET(request: Request) {
+//eslint-disable-next-line
+export async function GET(req: NextRequest) {
     const session = await getServerSession(authOptions);
 
     if (!session?.user) {
@@ -27,6 +28,6 @@ export async function GET(request: Request) {
 
         return NextResponse.json([{ totalInvestment, totalCurrentValue, totalGainLoss }]);
     } catch (error) {
-        return NextResponse.json({ error: 'Failed to fetch investments' }, { status: 500 });
+        return NextResponse.json({ error: 'Failed to fetch investments' + error }, { status: 500 });
     }
 }

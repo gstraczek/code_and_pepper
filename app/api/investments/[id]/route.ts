@@ -12,18 +12,14 @@ export async function DELETE(req: NextRequest, { params }: { params: { id: strin
 
     const { id } = params;
 
-    if (!id || typeof id !== 'string') {
-        return NextResponse.json({ error: 'Invalid ID' }, { status: 400 });
-    }
-
     try {
         await prisma.investment.delete({
-            where: { id },
+            where: { id: parseInt(id) },
         });
 
         return NextResponse.json({ id }, { status: 200 });
     } catch (error) {
-        return NextResponse.json({ error: 'Failed to delete investment' }, { status: 500 });
+        return NextResponse.json({ error: 'Failed to delete investment' + error }, { status: 500 });
     }
 }
 
@@ -36,15 +32,13 @@ export async function PUT(req: NextRequest, { params }: { params: { id: string }
 
     const { id } = params;
 
-    if (!id || typeof id !== 'string') {
-        return NextResponse.json({ error: 'Invalid ID' }, { status: 400 });
-    }
+
 
     const { name, quantity, buyPrice, currentPrice } = await req.json();
 
     try {
         const investment = await prisma.investment.update({
-            where: { id },
+            where: { id: parseInt(id) },
             data: {
                 name,
                 quantity,
@@ -55,6 +49,6 @@ export async function PUT(req: NextRequest, { params }: { params: { id: string }
 
         return NextResponse.json(investment);
     } catch (error) {
-        return NextResponse.json({ error: 'Failed to update investment' }, { status: 500 });
+        return NextResponse.json({ error: 'Failed to update investment' + error }, { status: 500 });
     }
 }

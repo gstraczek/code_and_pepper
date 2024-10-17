@@ -1,33 +1,25 @@
 import { create } from 'zustand';
 import axios from 'axios';
-import { Investment } from '@/types/types';
+import { Investment } from '@prisma/client';
+import { toast } from 'sonner'
 
 interface InvestmentsState {
     investments: Investment[];
     loading: boolean;
     error: string | null;
-    chartData: { labels: string[]; datasets: number[] };
-    fetchInvestments: () => Promise<void>;
+    chartData: { labels: string[]; currPriceDatasets: number[], buyPriceDatasets: number[] };
     updateInvestment: (investment: Investment) => Promise<void>;
     saveInvestment: (investment: Investment) => Promise<Investment>;
-    removeInvestment: (id: String) => Promise<void>;
+    removeInvestment: (id: Number) => Promise<void>;
     updateChartData: () => void;
+    setInvestments: (investments: Investment[]) => void;
 }
 
 const useInvestmentsStore = create<InvestmentsState>((set, get) => ({
     investments: [],
     loading: false,
     error: null,
-    chartData: { labels: [], datasets: [] },
-    fetchInvestments: async () => {
-        set({ loading: true, error: null });
-        try {
-            const response = await axios.get<Investment[]>('/api/investments');
-            set({ investments: response.data, loading: false });
-        } catch (error) {
-            set({ error: 'Failed to fetch investments', loading: false });
-        }
-    },
+    chartData: { labels: [], currPriceDatasets: [], buyPriceDatasets: [] },
     updateInvestment: async (investment: Investment) => {
         await axios.put(`/api/investments/${investment.id}`, investment);
         set((state) => ({
@@ -37,11 +29,11 @@ const useInvestmentsStore = create<InvestmentsState>((set, get) => ({
         }));
     },
     saveInvestment: async (investment: Investment) => {
-        const res = await axios.post('/api/investments', investment);
-        set((state) => ({ investments: [...state.investments, investment] }));
-        return res.data;
+        const { data: inv } = await axios.post('/api/investments', investment);
+        set((state) => ({ investments: [...state.investments, inv] }));
+        return inv;
     },
-    removeInvestment: async (id: String) => {
+    removeInvestment: async (id) => {
         await axios.delete(`/api/investments/${id}`);
         set((state) => ({
             investments: state.investments.filter((inv) => inv.id !== id),
@@ -50,9 +42,14 @@ const useInvestmentsStore = create<InvestmentsState>((set, get) => ({
     updateChartData: () => {
         const investments = get().investments
         const labels = investments.map((investment) => investment.name);
-        const datasets = investments.map((investment) => investment.currentPrice);
-        set({ chartData: { labels, datasets } });
+        const currPriceDatasets = investments.map((investment) => investment.currentPrice);
+        const buyPriceDatasets = investments.map((investment) => investment.buyPrice);
+        set({ chartData: { labels, currPriceDatasets, buyPriceDatasets } });
     },
+    setInvestments: (investments: Investment[]) => set({
+        investments
+    }),
+
 }));
 
 export default useInvestmentsStore;

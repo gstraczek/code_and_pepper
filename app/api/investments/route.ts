@@ -3,6 +3,7 @@ import prisma from '@/lib/prisma';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/auth';
 
+//eslint-disable-next-line
 export async function GET(req: NextRequest) {
   const session = await getServerSession(authOptions);
 
@@ -17,7 +18,7 @@ export async function GET(req: NextRequest) {
 
     return NextResponse.json(investments);
   } catch (error) {
-    return NextResponse.json({ error: 'Failed to fetch investments' }, { status: 500 });
+    return NextResponse.json({ error: 'Failed to fetch investments' + error }, { status: 500 });
   }
 }
 
@@ -43,6 +44,6 @@ export async function POST(req: NextRequest) {
 
     return NextResponse.json(investment);
   } catch (error) {
-    return NextResponse.json({ error: 'Failed to create investment' }, { status: 500 });
+    return NextResponse.json({ error: 'Failed to create investment' + error }, { status: 500 });
   }
 }

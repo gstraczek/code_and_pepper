@@ -1,8 +1,11 @@
 
 import { AuthOptions, getServerSession } from "next-auth"
 import CredentialsProvider from "next-auth/providers/credentials"
+import { PrismaAdapter } from "@next-auth/prisma-adapter"
+
 import prisma from "./lib/prisma"
 const authOptions: AuthOptions = {
+  adapter: PrismaAdapter(prisma),
   providers: [
     CredentialsProvider({
       name: "Credentials",
@@ -10,23 +13,16 @@ const authOptions: AuthOptions = {
         email: { label: "Email", type: "text" },
         password: { label: "Password", type: "password" },
       },
-      async authorize(credentials, req) {
+      async authorize(credentials) {
         const user = await prisma.user.findUnique({
           where: {
             email: credentials?.email,
           },
         })
-        //fixme refactor
-        if (user && user.password === credentials?.password) {
-          return {
-            id: user.id,
-            email: user.email,
-            name: user.name || ""
-          }
-        }
-        else {
+        if (!user) {
           return null
         }
+        return user
       }
     })
   ],
@@ -40,9 +36,8 @@ const authOptions: AuthOptions = {
     strategy: "jwt",
     maxAge: 30 * 24 * 60 * 60,
   },
-  jwt: {
-    secret: process.env.NEXTAUTH_SECRET,
-  },
+  secret: process.env.NEXTAUTH_SECRET,
+  debug: process.env.NODE_ENV === "development",
   callbacks: {
     async jwt({ token, user }) {
       if (user) {
@@ -58,6 +53,7 @@ const authOptions: AuthOptions = {
       }
       return session
     }
+
   }
 }
 
