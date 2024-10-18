@@ -22,7 +22,7 @@ describe("Investments", () => {
         cy.get('div[role="gridcell"][col-id="currentPrice"]').last().within(($cell) => {
             cy.wrap($cell).dblclick().type("300").type("{enter}");
         });
-        cy.get('div[role="gridcell"]').each(($cell) => {
+        cy.wait(600).get('div[role="gridcell"]').each(($cell) => {
             cy.wrap($cell).should("not.have.class", "bg-red-200");
         });
     })

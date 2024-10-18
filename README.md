@@ -22,3 +22,13 @@ npm run prisma:setup
 ## Login Credentials
     - email: test@test.pl
     - password: test
+
+## To run unit tests
+```sh
+npm run test
+```
+
+## To run cypress E2E tests 
+```sh
+npm run cypress:open
+```

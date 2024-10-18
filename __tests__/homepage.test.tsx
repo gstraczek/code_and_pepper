@@ -1,4 +1,4 @@
-import Dashboard from "@/app/dashboard/page";
+import Dashboard from "@/app/page";
 import { render, screen } from "@testing-library/react";
 import { expect, describe, it } from "vitest";
 
