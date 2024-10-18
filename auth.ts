@@ -17,6 +17,7 @@ const authOptions: AuthOptions = {
         const user = await prisma.user.findUnique({
           where: {
             email: credentials?.email,
+            password: credentials?.password,
           },
         })
         if (!user) {
@@ -26,12 +27,7 @@ const authOptions: AuthOptions = {
       }
     })
   ],
-  //   pages: {
-  //     signIn: "/auth/signin",
-  //     signOut: "/auth/signout",
-  //     error: "/auth/error",
-  //     verifyRequest: "/auth/verify-request"
-  //   },
+
   session: {
     strategy: "jwt",
     maxAge: 30 * 24 * 60 * 60,

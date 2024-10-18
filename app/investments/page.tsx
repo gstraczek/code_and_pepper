@@ -1,6 +1,6 @@
 import Investments from "../components/investments/investments";
 import { Suspense } from "react";
-import { Spinner } from "@/components/ui/spinner";
+import { Spinner } from "@/app/components/ui/spinner";
 import { GET } from "../api/investments/route";
 import { NextRequest } from "next/server";
 import { Investment } from "@prisma/client";

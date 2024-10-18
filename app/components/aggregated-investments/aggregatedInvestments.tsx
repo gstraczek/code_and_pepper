@@ -1,7 +1,7 @@
 "use client";
-import { AgGridReact } from "ag-grid-react"; // React Data Grid Component
-import "ag-grid-community/styles/ag-grid.css"; // Mandatory CSS required by the Data Grid
-import "ag-grid-community/styles/ag-theme-quartz.css"; // Optional Theme applied to the Data Grid
+import { AgGridReact } from "ag-grid-react";
+import "ag-grid-community/styles/ag-grid.css";
+import "ag-grid-community/styles/ag-theme-quartz.css";
 import { ColDef, ColGroupDef } from "ag-grid-community";
 import React, { useEffect } from "react";
 import useAggregatedInvestmentsStore from "@/store/aggregatedInvestmentsStore";
@@ -25,7 +25,7 @@ const AggregatedInvestments = ({
   useEffect(() => {
     setAggregatedInvestments(initialData);
   }, [initialData, setAggregatedInvestments]);
-
+  console.log(initialData);
   return (
     <>
       <h1 className="text-2xl font-bold mb-4">Aggregated Investments Table</h1>

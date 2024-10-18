@@ -1,6 +1,6 @@
 "use client";
 
-import { Button } from "@/components/ui/button";
+import { Button } from "@/app/components/ui/button";
 import { InvestmentColDefs, newInvestment } from "@/types/types";
 import {
   ColDef,
@@ -18,6 +18,7 @@ import exportToExcel from "@/lib/xlsx";
 import { Investment } from "@prisma/client";
 import "ag-grid-community/styles/ag-grid.css";
 import "ag-grid-community/styles/ag-theme-quartz.css";
+import { toast } from "sonner";
 
 const validateRow = (row: Partial<Investment>): { [key: string]: string } => {
   const errors: { [key: string]: string } = {};
@@ -45,11 +46,13 @@ export default function Investments({
   } = useInvestmentsStore();
 
   const [isDisabled, setIsDisabled] = useState(false);
+
   useEffect(() => {
-    setInvestments(initialData);
+    if (!investments.length) {
+      setInvestments(initialData);
+    }
     updateChartData();
   }, [initialData, setInvestments, updateChartData]);
-
   const gridApiRef = useRef<GridApi | null>(null);
 
   const onGridReady = (params: GridReadyEvent) => {
@@ -108,15 +111,15 @@ export default function Investments({
       {
         field: "actions",
         headerName: "Actions",
-        cellRenderer: (props: ICellRendererParams) => (
-          <ActionsCellRenderer {...props} onUnlockAddRow={setIsDisabled} />
-        ),
+        cellRenderer: ActionsCellRenderer,
+        cellRendererParams: {
+          onUnlockAddRow: setIsDisabled,
+        },
         minWidth: 50,
       },
     ],
     []
   );
-
   const onCellValueChanged = useCallback(
     async (event: CellValueChangedEvent) => {
       const errors = validateRow(event.data);
@@ -124,9 +127,12 @@ export default function Investments({
       if (!Object.keys(errors).length) {
         try {
           if (event.data.id === "temp") {
+            gridApiRef.current?.applyTransaction({ update: [event.data] });
             const savedInvestment = await saveInvestment(event.data);
-            const updatedRow = { ...event.data, id: savedInvestment.id };
-            gridApiRef.current?.applyTransaction({ update: [updatedRow] });
+            const updatedRow = {
+              ...event.data,
+              id: savedInvestment.id,
+            };
             setIsDisabled(false);
           } else {
             await updateInvestment(event.data);
@@ -134,7 +140,7 @@ export default function Investments({
           gridApiRef.current?.refreshCells();
           updateChartData();
         } catch (error) {
-          console.error("Failed to save investment:", error);
+          toast.error("Failed to save investment");
         }
       }
     },
@@ -187,20 +193,31 @@ export default function Investments({
     <>
       <h1 className="text-2xl font-bold mb-4">Investments Table</h1>
       <div className="flex flex-col h-auto">
-        <div className="mb-4">
-          <Button className="mr-4" onClick={addNewRow} disabled={isDisabled}>
-            Add New Row
-          </Button>
-          <Button onClick={handleExportToCsv} disabled={!investments.length}>
-            Export to CSV
-          </Button>
-          <Button
-            className="ml-4"
-            onClick={handleExportToExcel}
-            disabled={!investments.length}
-          >
-            Export to Excel
-          </Button>
+        <div className="mb-4 flex">
+          <div className="mb-4 flex flex-wrap space-x-4">
+            <Button
+              className="sm:mb-0 sm:py-2 sm:px-4 py-1 px-2 text-xs sm:text-sm md:text-base"
+              onClick={addNewRow}
+              disabled={isDisabled}
+              data-testid="add-new-row"
+            >
+              Add New Row
+            </Button>
+            <Button
+              className="sm:mb-0 sm:py-2 sm:px-4 py-1 px-2 text-xs sm:text-sm md:text-base"
+              onClick={handleExportToCsv}
+              disabled={!investments.length}
+            >
+              Export to CSV
+            </Button>
+            <Button
+              className="sm:mb-0 sm:py-2 sm:px-4 py-1 px-2 text-xs sm:text-sm md:text-base"
+              onClick={handleExportToExcel}
+              disabled={!investments.length}
+            >
+              Export to Excel
+            </Button>
+          </div>
         </div>
         <div className="ag-theme-quartz">
           <AgGridReact

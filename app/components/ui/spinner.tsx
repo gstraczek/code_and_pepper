@@ -45,7 +45,7 @@ export function Spinner({
     <span
       className={cn(
         spinnerVariants({ show }),
-        "fixed flex inset-0 items-center justify-center bg-gray-500 bg-opacity-50"
+        "absolute flex inset-0 items-center justify-center bg-gray-500 bg-opacity-50"
       )}
     >
       <Loader2 className={cn(loaderVariants({ size }), className)} />
