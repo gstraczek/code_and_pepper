@@ -17,18 +17,16 @@ const ActionsCellRenderer = (props: ActionsCellRendererProps) => {
     try {
       // remove temp investment as it is not saved and not in the database
       if (typeof node.data.id === "number") {
-        try {
-          api.applyTransaction({ remove: [node.data] });
-          await removeInvestment(node.data.id);
-        } catch (error) {
-          toast.error("Failed to delete row");
-        }
+        api.applyTransaction({ remove: [node.data] });
+        await removeInvestment(node.data.id);
+
         updateChartData();
       }
 
       onUnlockAddRow(false);
-    } catch (error) {
-      return console.error("Failed to delete row:", error);
+    } catch (e) {
+      console.log(e);
+      toast.error("Failed to delete row");
     }
   };
   return (

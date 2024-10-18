@@ -9,7 +9,7 @@ interface InvestmentsState {
     error: string | null;
     chartData: { labels: string[]; currPriceDatasets: number[], buyPriceDatasets: number[] };
     updateInvestment: (investment: Investment) => Promise<void>;
-    saveInvestment: (investment: Investment) => Promise<Investment>;
+    saveInvestment: (investment: Investment) => Promise<void>;
     removeInvestment: (id: Number) => Promise<void>;
     updateChartData: () => void;
     setInvestments: (investments: Investment[]) => void;
@@ -31,7 +31,6 @@ const useInvestmentsStore = create<InvestmentsState>((set, get) => ({
     saveInvestment: async (investment: Investment) => {
         const { data: inv } = await axios.post('/api/investments', investment);
         set((state) => ({ investments: [...state.investments, inv] }));
-        return inv;
     },
     removeInvestment: async (id) => {
         await axios.delete(`/api/investments/${id}`);

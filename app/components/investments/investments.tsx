@@ -7,7 +7,6 @@ import {
   ITooltipParams,
   GridApi,
   CellValueChangedEvent,
-  ICellRendererParams,
   GridReadyEvent,
 } from "ag-grid-community";
 import { AgGridReact } from "ag-grid-react";
@@ -52,7 +51,7 @@ export default function Investments({
       setInvestments(initialData);
     }
     updateChartData();
-  }, [initialData, setInvestments, updateChartData]);
+  }, [initialData, setInvestments, updateChartData, investments]);
   const gridApiRef = useRef<GridApi | null>(null);
 
   const onGridReady = (params: GridReadyEvent) => {
@@ -128,11 +127,8 @@ export default function Investments({
         try {
           if (event.data.id === "temp") {
             gridApiRef.current?.applyTransaction({ update: [event.data] });
-            const savedInvestment = await saveInvestment(event.data);
-            const updatedRow = {
-              ...event.data,
-              id: savedInvestment.id,
-            };
+            await saveInvestment(event.data);
+
             setIsDisabled(false);
           } else {
             await updateInvestment(event.data);
@@ -140,6 +136,7 @@ export default function Investments({
           gridApiRef.current?.refreshCells();
           updateChartData();
         } catch (error) {
+          console.log(error);
           toast.error("Failed to save investment");
         }
       }
