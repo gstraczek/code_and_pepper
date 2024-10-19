@@ -3,7 +3,7 @@ Interview Task
 
 ## App Deployment
 The app is deployed on Vercel:
-[Interview Task on Vercel](https://vercel.live/link/interview-task-16fkbiqcf-gstraczeks-projects.vercel.app?via=deployment-screenshot&p=1)
+[Interview Task on Vercel](https://interview-task-gamma.vercel.app/)
 
 ## Running the Project Locally with Docker Compose
 To run the project locally, use Docker Compose:
